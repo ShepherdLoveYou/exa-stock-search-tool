@@ -1,0 +1,22 @@
+{
+  "mcp": {
+    "name": "exa-search-mcp",
+    "version": "0.1.0",
+    "description": "Exa Search MCP Server for Claude",
+    "transport": "http",
+    "url": "https://mcp.exa.ai/mcp",
+    "apiKey": "${EXA_API_KEY}"
+  },
+  "tools": {
+    "enabled": [
+      "search_stock_news",
+      "search_market_analysis",
+      "search_company_info",
+      "deep_research"
+    ]
+  },
+  "claudeCodeIntegration": {
+    "installCommand": "claude mcp add --transport http exa https://mcp.exa.ai/mcp?exaApiKey=${EXA_API_KEY}",
+    "serverUrl": "https://mcp.exa.ai/mcp?exaApiKey=${EXA_API_KEY}&tools=web_search_exa,web_search_advanced_exa,company_research_exa"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "exa": {
+    "apiKey": "${EXA_API_KEY}",
+    "searchType": "auto",
+    "numResults": 10,
+    "content": {
+      "type": "highlights",
+      "maxCharacters": 4000
+    }
+  },
+  "search": {
+    "stockSearch": {
+      "enabled": true,
+      "description": "Search for stock market information"
+    },
+    "marketAnalysis": {
+      "enabled": true,
+      "description": "Search for market trends and analysis"
+    },
+    "deepResearch": {
+      "enabled": true,
+      "description": "Perform deep research on market topics"
+    }
+  }
+}
