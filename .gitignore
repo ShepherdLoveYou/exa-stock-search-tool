@@ -51,6 +51,13 @@ htmlcov/
 # Claude Code memory
 .claude/
 
+# Generated reports (user-specific, don't track)
+research Output/markdown/*.md
+research Output/pdf/*.pdf
+!research Output/templates/
+
 # Temporary/test files
 _tem_skeleton.md
-test_pw.pdf
+_generate_*.py
+test_*.py
+test_*.pdf

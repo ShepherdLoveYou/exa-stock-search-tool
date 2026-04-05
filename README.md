@@ -135,43 +135,40 @@ You can customize these tiers in `config.yaml` under `source_tiers`.
 ## Project Structure / 项目结构
 
 ```
-config.yaml              <-- THE ONLY FILE YOU NEED TO EDIT / 你唯一需要编辑的文件
-.env                     <-- Alternative: API keys here / 备选：API 密钥放这里
+CLAUDE.md                ← 项目规则（Claude 自动读取）/ Project rules (auto-loaded)
+config.yaml              ← 唯一需要编辑的配置文件 / The only config file to edit
+.env                     ← 备选：API 密钥 / Alternative: API keys
 
 src/
-  config.py              <-- Centralized config loader / 统一配置加载器
-  claude_skill.py        <-- CLI entry point / 命令行入口
+  config.py              ← 统一配置加载器 / Centralized config loader
+  claude_skill.py        ← 命令行入口 / CLI entry point
 
   search/
-    exa_searcher.py      <-- Exa API search with retry / Exa 搜索（含重试）
+    exa_searcher.py      ← Exa 搜索（含重试）/ Exa API search with retry
 
   core/
-    researcher.py        <-- Research report generation / 投研报告生成
-    valuation.py         <-- 10+ valuation methods / 10+ 估值方法
-    freshness.py         <-- Data freshness checker / 数据时效性检查
-    validator.py         <-- Cross-validation & scoring / 交叉验证与评分
+    researcher.py        ← 投研报告生成 / Research report generation
+    valuation.py         ← 10+ 估值方法 / 10+ valuation methods
+    freshness.py         ← 数据时效性检查 / Data freshness checker
+    validator.py         ← 交叉验证与评分 / Cross-validation & scoring
 
   server/
-    mcp_server.py        <-- MCP protocol server (14 tools) / MCP 服务器 (14 工具)
-    skill_router.py      <-- Natural language router / 自然语言路由
+    mcp_server.py        ← MCP 服务器（14 工具）/ MCP server (14 tools)
+    skill_router.py      ← 自然语言路由 / Natural language router
 
   export/
-    exporter.py          <-- Markdown + PDF export / 报告导出
-    naming.py            <-- File naming conventions / 文件命名规则
+    exporter.py          ← 报告导出（MD + PDF）/ Report export
+    naming.py            ← 文件命名规则 / File naming conventions
 
-  utils/
-    helpers.py           <-- Utility functions / 工具函数
-
-  examples/              <-- Example code / 示例代码
-
-config/
-  exa_config.json        <-- Exa API settings / Exa API 设置
-  mcp_config.json        <-- MCP server settings / MCP 服务器设置
+  utils/helpers.py       ← 工具函数 / Utility functions
+  examples/              ← 示例代码 / Example code
 
 research Output/
-  markdown/              <-- Exported .md reports / 导出的 Markdown 报告
-  pdf/                   <-- Exported .pdf reports / 导出的 PDF 报告
-  templates/             <-- Report templates / 报告模板
+  templates/             ← 报告模板 / Report templates (mature/growth/web3)
+  markdown/              ← 导出的 Markdown 报告（gitignored）
+  pdf/                   ← 导出的 PDF 报告（gitignored）
+
+docs/                    ← 详细文档 / Detailed docs (01-07)
 ```
 
 ---

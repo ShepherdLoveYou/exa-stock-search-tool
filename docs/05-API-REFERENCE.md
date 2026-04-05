@@ -271,8 +271,7 @@ Format search results into a human-readable text string with tier labels.
 Location / 位置: `src/server/skill_router.py`
 
 Intelligent router that interprets natural language queries and dispatches to
-search, research, valuation, freshness, or export handlers. Merges the old
-`ExaSkillRouter` (search-only) with investment research routing.
+search, research, valuation, freshness, or export handlers.
 
 ### Constructor / 构造函数
 
