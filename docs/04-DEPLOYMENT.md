@@ -1,360 +1,349 @@
-# 🚀 部署和设置指南
+# Deployment and Setup Guide / 部署和设置指南
 
+v0.3.0 -- Crisis Investment Researcher
+
+Complete environment setup, configuration, and verification workflow.
 完整的环境搭建、配置和验证流程。
 
 ---
 
-## 📋 部署检查清单
+## Prerequisites / 前置条件
 
-### 前置条件 ✓
-- [ ] Python 3.13+ 已安装
-- [ ] VS Code 已安装 Copilot Chat
-- [ ] Exa API Key 已获取
-
----
-
-## ⚙️ 第1步：环境设置
-
-### 方法A：自动设置脚本（推荐）
-
-```powershell
-# 运行完整设置脚本
-.\scripts\setup_env.ps1
-```
-
-**脚本会自动**:
-1. 创建虚拟环境 (venv)
-2. 激活虚拟环境
-3. 安装所有依赖
-4. 验证安装
+- Python 3.10+
+- Exa API key (get it from https://dashboard.exa.ai/api-keys)
+- (Optional) OpenAI or Anthropic API key for LLM integration examples
 
 ---
 
-### 方法B：手动设置
+## Step 1: Configure API Keys / 第1步: 配置 API 密钥
 
-#### 1. 创建虚拟环境
-```powershell
-python -m venv venv
+The system reads configuration from **two sources** with the following priority:
+
+1. Environment variables (`.env` file or system env) -- highest priority
+2. `config.yaml` -- recommended for non-developers
+
+### Option A: config.yaml (recommended / 推荐)
+
+Open `config.yaml` in the project root. This is the **only** file most users need to edit.
+
+```yaml
+# ── API Keys ──
+api_keys:
+  exa: "your-exa-api-key-here"       # Required / 必填
+  openai: ""                          # Optional / 选填
+  anthropic: ""                       # Optional / 选填
 ```
 
-#### 2. 激活虚拟环境
-```powershell
-.\venv\Scripts\Activate.ps1
+The file also contains search, validation, source-tier, export, and network settings.
+Each section is commented in both English and Chinese. Key sections:
+
+| Section / 区块         | Purpose / 用途                                             |
+|------------------------|------------------------------------------------------------|
+| `api_keys`             | API credentials / API 密钥                                 |
+| `search`               | Search type, result count, content mode / 搜索类型与数量    |
+| `validation`           | Source-citation rules, freshness thresholds / 数据验证规则  |
+| `source_tiers`         | Domain-based credibility ranking / 来源可信度分级           |
+| `export`               | Output directories, naming pattern, PDF engines / 导出设置  |
+| `network`              | Timeout, retry count, retry delay / 网络设置               |
+
+#### search section details / 搜索设置详解
+
+```yaml
+search:
+  type: "auto"            # "auto" | "fast" | "deep" | "deep-reasoning"
+  num_results: 10         # Results per search / 每次搜索返回数量
+  max_characters: 4000    # Max chars per result / 每条结果最大字符数
+  content_mode: "highlights"  # "highlights" (saves tokens) | "text" (full article)
 ```
 
-#### 3. 安装依赖
-```powershell
+#### validation section details / 数据验证详解
+
+```yaml
+validation:
+  require_source_citations: true       # Require [来源: XX] tags / 要求来源标注
+  min_cross_validation_sources: 2      # Min sources for cross-validation / 最少交叉验证来源数
+  auto_flag_stale_data: true           # Auto-flag stale data / 自动标记过期数据
+  block_export_on_high_risk: true      # Block PDF export if hallucination risk is high
+  freshness_thresholds:                # Freshness thresholds in days (20 categories)
+    stock_price: 1
+    financial_statements: 120
+    analyst_ratings: 30
+    # ... (see config.yaml for all 20 categories)
+```
+
+#### export section details / 导出设置详解
+
+```yaml
+export:
+  markdown_dir: "research Output/markdown"
+  pdf_dir: "research Output/pdf"
+  naming_pattern: "{date}_{ticker}_{framework}_{report_id}"
+  pdf_engines:
+    - "chromium"     # Best quality (needs playwright)
+    - "fitz"         # Good quality (needs pymupdf, included in requirements.txt)
+    - "text"         # Plain text fallback, always available
+```
+
+#### network section details / 网络设置详解
+
+```yaml
+network:
+  timeout: 30          # Request timeout in seconds / 请求超时 (秒)
+  max_retries: 3       # Retry count on transient failure / 失败重试次数
+  retry_delay: 1.0     # Base delay between retries (exponential backoff) / 重试间隔 (秒)
+```
+
+### Option B: .env file (alternative / 备选)
+
+Create a `.env` file in the project root:
+
+```env
+EXA_API_KEY=your-exa-api-key-here
+OPENAI_API_KEY=your-openai-key-here
+ANTHROPIC_API_KEY=your-anthropic-key-here
+```
+
+Environment variables always override values in `config.yaml`.
+环境变量的优先级始终高于 `config.yaml`。
+
+---
+
+## Step 2: Install Dependencies / 第2步: 安装依赖
+
+```bash
 pip install -r requirements.txt
 ```
 
----
+### Required dependencies / 必需依赖
 
-## 🔑 第2步：配置API密钥
+| Package / 包     | Min Version | Purpose / 用途                           |
+|-------------------|-------------|------------------------------------------|
+| exa-py            | 1.0.0       | Exa search API client / Exa 搜索客户端   |
+| python-dotenv     | 1.0.0       | Load .env files / 读取 .env 文件         |
+| openai            | 1.0.0       | OpenAI API (optional integration)        |
+| anthropic         | 0.7.0       | Anthropic API (optional integration)     |
+| requests          | 2.31.0      | HTTP requests / HTTP 请求                |
+| markdown          | 3.4.0       | Markdown-to-HTML conversion / MD 转 HTML |
+| pymupdf           | 1.23.0      | PDF rendering via fitz / PDF 渲染        |
+| pyyaml            | 6.0         | YAML config parsing / YAML 配置解析      |
 
-### 获取Exa API Key
+### Optional: Chromium PDF engine / 可选: Chromium PDF 引擎
 
-1. 访问 https://dashboard.exa.ai/api-keys
-2. 登录或创建账户
-3. 复制 API Key
+For the highest-quality PDF output (the system tries engines in the order defined
+in `config.yaml` and falls back automatically):
 
-### 设置.env文件
-
-#### 1. 复制示例文件
-```powershell
-cp .env.example .env
+```bash
+pip install playwright
+playwright install chromium
 ```
 
-#### 2. 编辑 .env
-```env
-EXA_API_KEY=your_api_key_here
-OPENAI_API_KEY=your_openai_key_here（可选）
-ANTHROPIC_API_KEY=your_anthropic_key_here（可选）
-```
-
-#### 3. 保存文件
+If Playwright/Chromium is not installed, the system falls back to pymupdf (fitz),
+then to a plain-text PDF fallback. No manual action is needed.
 
 ---
 
-## ✅ 第3步：验证安装
+## Step 3: Verify Installation / 第3步: 验证安装
 
-### 运行集成检查
-
-```powershell
-# 激活虚拟环境（如未激活）
-.\venv\Scripts\Activate.ps1
-
-# 运行检查
+```bash
 python check_integration.py
 ```
 
-**期望输出**:
+The checker runs five groups of tests:
+
+1. **Core files** -- SKILL.md, .instructions.md, config.yaml, requirements.txt
+2. **Source modules** -- all 10 Python modules under `src/`
+3. **Configuration** -- config.yaml or .env detected
+4. **Python imports** -- all classes import without errors
+5. **API key** -- Exa API key is present and non-empty
+
+Expected output when everything is correct:
+
 ```
-✅ SKILL.md exists
-✅ .instructions.md exists
-✅ Core modules import successfully
-✅ API Key configured
-✅ All dependencies installed
-✅ All checks passed!
-```
+======================================================================
+  Crisis Investment Researcher - Integration Checker
+======================================================================
 
----
+[1/5] Core Files:
+  [OK] Claude Skill Definition                                SKILL.md
+  [OK] Claude Instructions                                    .instructions.md
+  [OK] Main Configuration                                     config.yaml
+  [OK] Dependencies                                           requirements.txt
 
-### 运行演示程序
+[2/5] Source Modules:
+  [OK] Centralized Config Loader                              src/config.py
+  [OK] Claude Skill Entry Point                               src/claude_skill.py
+  [OK] Exa Search Engine                                      src/search/exa_searcher.py
+  [OK] Investment Researcher                                  src/core/researcher.py
+  [OK] Valuation Methods (10+)                                src/core/valuation.py
+  [OK] Data Freshness Checker                                 src/core/freshness.py
+  [OK] Data Validator & Cross-Validation                      src/core/validator.py
+  [OK] MCP Server (14 tools)                                  src/server/mcp_server.py
+  [OK] Unified Skill Router                                   src/server/skill_router.py
+  [OK] Report Exporter (MD + PDF)                             src/export/exporter.py
 
-```powershell
-# 基本搜索示例
-python -m src.examples.basic_search
+[3/5] Configuration:
+  [OK] config.yaml found
 
-# Claude Skill演示
-python -m src.examples.claude_skill_demo
+[4/5] Python Imports:
+  [OK] All Python modules import successfully
 
-# OpenAI集成示例
-python -m src.examples.openai_function_calling
+[5/5] API Key:
+  [OK] API Key configured: abc1234567...
 
-# Anthropic集成示例
-python -m src.examples.anthropic_tool_use
-```
-
----
-
-## 📦 依赖项说明
-
-### 必需依赖
-
-| 包 | 版本 | 用途 |
-|-----|------|-----|
-| exa-py | 2.10.2 | Exa API 客户端 |
-| anthropic | 0.88.0 | Claude API |
-| openai | 2.30.0 | OpenAI API |
-| python-dotenv | 1.2.2 | 环境变量管理 |
-| requests | 2.31.0 | HTTP 请求 |
-
-### 验证依赖
-
-```powershell
-pip list
-```
-
----
-
-## 🔧 配置文件详解
-
-### config/exa_config.json
-
-```json
-{
-  "api_base": "https://api.exa.ai",
-  "search_type": "auto",
-  "num_results": 10,
-  "highlights": true,
-  "max_highlight_length": 4000,
-  "timeout": 30
-}
-```
-
-**说明**:
-- `search_type: "auto"` - 平衡速度和相关性
-- `num_results: 10` - 默认返回10条结果
-- `highlights: true` - 包含内容摘要
-- `max_highlight_length: 4000` - 摘要最大字符数
-
----
-
-### config/mcp_config.json
-
-```json
-{
-  "server_name": "exa-search-mcp",
-  "version": "1.0.0",
-  "capabilities": [
-    "search_stock",
-    "search_market_analysis",
-    "search_company_info",
-    "search_deep_research"
-  ]
-}
+======================================================================
+  ALL CHECKS PASSED - Ready to use!
+======================================================================
 ```
 
 ---
 
-## 📁 项目结构验证
+## Project Structure / 项目结构 (v0.3.0)
 
 ```
 d:\MCP project\EXA search MCP\
-├── src/
-│   ├── stock_searcher.py          ✓
-│   ├── skill_router.py             ✓
-│   ├── claude_skill.py             ✓
-│   ├── mcp_server.py               ✓
-│   └── examples/
-│       ├── basic_search.py         ✓
-│       ├── stock_search.py         ✓
-│       ├── claude_skill_demo.py    ✓
-│       ├── openai_function_calling.py
-│       └── anthropic_tool_use.py
-├── config/
-│   ├── exa_config.json             ✓
-│   └── mcp_config.json             ✓
-├── scripts/
-│   ├── setup_env.ps1               ✓
-│   └── install_dependencies.ps1    ✓
-├── .env                            ✓ (API Key配置)
-├── .env.example                    ✓
-├── SKILL.md                        ✓
-├── .instructions.md                ✓
-├── requirements.txt                ✓
-├── check_integration.py            ✓
-└── README.md                       ✓
+|-- config.yaml                   # Main config (THE file non-coders edit)
+|-- .env                          # API keys (alternative to config.yaml)
+|-- requirements.txt              # Python dependencies
+|-- check_integration.py          # Integration checker
+|-- SKILL.md                      # Claude Skill definition
+|-- .instructions.md              # Claude custom instructions
+|-- setup.py                      # Package metadata
+|
+|-- src/
+|   |-- __init__.py
+|   |-- config.py                 # Centralized config loader
+|   |-- claude_skill.py           # CLI entry point
+|   |
+|   |-- search/
+|   |   |-- __init__.py
+|   |   +-- exa_searcher.py       # StockSearcher (retry, source tiers)
+|   |
+|   |-- core/
+|   |   |-- __init__.py
+|   |   |-- researcher.py         # InvestmentResearcher (mature/growth/web3)
+|   |   |-- valuation.py          # ValuationMethods (10+ methods)
+|   |   |-- freshness.py          # DataFreshnessChecker (20 categories)
+|   |   +-- validator.py          # DataValidator (cross-validation, scoring)
+|   |
+|   |-- server/
+|   |   |-- __init__.py
+|   |   |-- mcp_server.py         # ExaMCPServer (14 MCP tools)
+|   |   +-- skill_router.py       # UnifiedSkillRouter
+|   |
+|   |-- export/
+|   |   |-- __init__.py
+|   |   |-- exporter.py           # ReportExporter (Markdown + PDF)
+|   |   +-- naming.py             # ReportNaming (templated filenames)
+|   |
+|   +-- examples/                 # Example scripts
+|
+|-- research Output/
+|   |-- markdown/                 # Exported .md reports
+|   |-- pdf/                      # Exported .pdf reports
+|   +-- templates/                # Report skeleton templates
+|
++-- docs/                         # Documentation
 ```
 
 ---
 
-## 🧪 功能测试
+## Quick Functional Test / 快速功能测试
 
-### 测试1：基础搜索
+### Test 1: CLI search / 命令行搜索
 
-```powershell
-.\venv\Scripts\python.exe src/claude_skill.py "Apple stock news"
+```bash
+python src/claude_skill.py "Apple stock news"
 ```
 
-**预期**: 返回5条Apple相关的新闻结果
+Expected: formatted search results with source tier labels.
 
----
+### Test 2: JSON output / JSON 输出
 
-### 测试2：JSON输出
-
-```powershell
-.\venv\Scripts\python.exe src/claude_skill.py "Tesla analysis" --json
+```bash
+python src/claude_skill.py "Tesla analysis" --json
 ```
 
-**预期**: 返回JSON格式的结果
+Expected: JSON-formatted search results.
+
+### Test 3: Research report skeleton / 投研报告骨架
+
+```bash
+python src/claude_skill.py "Report for AAPL" --research
+```
+
+Expected: a report skeleton with `{{PLACEHOLDER}}` fields and prioritized search queries.
 
 ---
 
-### 测试3：Claude Chat集成
+## Update Dependencies / 更新依赖
 
-1. 在VS Code中按 `Ctrl + L`
-2. 输入 "Apple latest news"
-3. Claude自动调用搜索
-
-**预期**: Claude返回搜索结果
-
----
-
-## 🔄 更新和维护
-
-### 更新依赖
-
-```powershell
+```bash
 pip install --upgrade -r requirements.txt
 ```
 
-### 检查过时包
+Check for outdated packages:
 
-```powershell
+```bash
 pip list --outdated
 ```
 
 ---
 
-## 🆘 常见部署问题
+## Common Deployment Issues / 常见部署问题
 
-### 问题1：Python不在PATH中
+### Issue: API key not found
+
 ```
-错误: 'python' is not recognized as an internal or external command
-```
-
-**解决方案**: 
-1. 重新安装Python，勾选"Add Python to PATH"
-2. 使用完整路径: `C:\Python313\python.exe`
-
----
-
-### 问题2：虚拟环境激活失败
-```
-错误: PowerShell execution policy
+ValueError: API key 'exa' not found.
 ```
 
-**解决方案**:
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-.\venv\Scripts\Activate.ps1
+Solution: set the key in `config.yaml` under `api_keys.exa`, or in `.env` as `EXA_API_KEY=...`.
+解决: 在 `config.yaml` 的 `api_keys.exa` 或 `.env` 的 `EXA_API_KEY` 中填入密钥。
+
+### Issue: Dependency install failure
+
+```
+ERROR: Could not find a version that satisfies the requirement
 ```
 
----
+Solution:
 
-### 问题3：依赖安装失败
-```
-错误: Could not find a version that satisfies the requirement
-```
-
-**解决方案**:
-```powershell
+```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
----
+### Issue: PDF export produces plain text
 
-### 问题4：API Key无效
+This means neither Chromium nor fitz rendered successfully. Install the optional
+Chromium engine:
+
+```bash
+pip install playwright
+playwright install chromium
 ```
-错误: EXA_API_KEY not configured
+
+Or verify pymupdf is installed: `pip install pymupdf`.
+
+### Issue: PowerShell execution policy (Windows)
+
+```
+.\venv\Scripts\Activate.ps1 : cannot be loaded because running scripts is disabled
 ```
 
-**解决方案**:
-1. 检查 `.env` 文件
-2. 确认API Key正确复制
-3. 重启终端
-
----
-
-## 📊 部署验证报告
-
-运行全面检查:
+Solution:
 
 ```powershell
-# 生成验证报告
-python check_integration.py > deployment_report.txt
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
 ---
 
-## ✨ 部署完成
+## Related Docs / 相关文档
 
-当所有检查都通过时 ✅
-
-```
-✅ 环境配置完成
-✅ 依赖安装完成
-✅ API配置完成
-✅ 功能验证完成
-✅ Claude集成完成
-
-系统准备就绪！
-```
-
----
-
-## 🚀 开始使用
-
-```powershell
-# 1. 打开VS Code
-code .
-
-# 2. 按 Ctrl + L 打开Claude Chat
-
-# 3. 输入查询
-"Apple latest news"
-
-# 4. 享受实时搜索！
-```
-
----
-
-## 📚 相关文档
-
-- [快速开始](01-QUICKSTART.md)
-- [完整使用](02-USAGE.md)
-- [Claude集成](03-INTEGRATION.md)
-- [故障排查](06-TROUBLESHOOTING.md)
-- [项目结构](07-PROJECT-STRUCTURE.md)
+- [Quick Start / 快速开始](01-QUICKSTART.md)
+- [Usage Guide / 使用指南](02-USAGE.md)
+- [Integration / 集成指南](03-INTEGRATION.md)
+- [API Reference / API 参考](05-API-REFERENCE.md)
+- [Troubleshooting / 故障排查](06-TROUBLESHOOTING.md)
+- [Project Structure / 项目结构](07-PROJECT-STRUCTURE.md)
