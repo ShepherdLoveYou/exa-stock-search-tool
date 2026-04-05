@@ -1,101 +1,81 @@
 """
-Claude Skill - Exa Stock Search
-Direct interface for Claude to call stock search functions
+Claude Skill — Crisis Investment Researcher
+Direct interface for Claude to call search + research functions
 """
 
 import sys
 import json
 import os
 
-# Add parent directory to path for imports
+# Ensure project root is on path for direct execution
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.skill_router import ExaSkillRouter
+from src.server.skill_router import UnifiedSkillRouter
 
 
 def search_stock(query: str, num_results: int = 10) -> str:
-    """
-    Main function that Claude will call.
-    
-    Args:
-        query: User's natural language search query
-        num_results: Number of results to return
-        
-    Returns:
-        Formatted search results as string
-    """
     try:
-        router = ExaSkillRouter()
-        results = router.search_and_format(query, num_results, max_display=5)
-        return results
+        router = UnifiedSkillRouter()
+        return router.search_and_format(query, num_results, max_display=5)
     except Exception as e:
-        return f"❌ Search error: {str(e)}"
+        return f"Search error: {str(e)}"
+
+
+def research(query: str) -> str:
+    """Route a research request and return JSON result"""
+    try:
+        router = UnifiedSkillRouter()
+        result = router.route(query)
+        return json.dumps(result, ensure_ascii=False, default=str, indent=2)
+    except Exception as e:
+        return json.dumps({"error": str(e)}, ensure_ascii=False)
 
 
 def search_stock_json(query: str, num_results: int = 10) -> str:
-    """
-    Return results as JSON for programmatic access.
-    
-    Args:
-        query: User's natural language search query
-        num_results: Number of results to return
-        
-    Returns:
-        JSON formatted results
-    """
     try:
-        router = ExaSkillRouter()
+        router = UnifiedSkillRouter()
         return router.search_as_json(query, num_results)
     except Exception as e:
-        return json.dumps({"error": str(e)}, ensure_ascii=False), "error"
+        return json.dumps({"error": str(e)}, ensure_ascii=False)
 
 
 def main():
-    """
-    CLI entry point - allows running from command line.
-    Usage: python src/claude_skill.py "Your search query"
-    """
     if len(sys.argv) < 2:
-        print("📖 Exa Stock Search Skill")
+        print("Crisis Investment Researcher Skill")
         print("-" * 50)
-        print("Usage: python src/claude_skill.py \"Your search query\"")
+        print("Usage: python src/claude_skill.py \"Your query\"")
         print("\nExamples:")
-        print("  python src/claude_skill.py \"What's the latest with Apple?\"")
-        print("  python src/claude_skill.py \"Analyze AI stocks\"")
-        print("  python src/claude_skill.py \"Research Tesla\"")
-        print("\nOptional:")
-        print("  --json: Return results as JSON")
-        print("  --results N: Return N results (default: 10)")
+        print('  python src/claude_skill.py "Generate report for AAPL"')
+        print('  python src/claude_skill.py "Analyze AI stocks"')
+        print('  python src/claude_skill.py "Valuation for Tesla"')
+        print("\nFlags: --json, --research, --results N")
         return
-    
+
     query = sys.argv[1]
     output_format = "text"
+    mode = "search"
     num_results = 10
-    
-    # Parse optional arguments
+
     for i, arg in enumerate(sys.argv[2:], 2):
         if arg == "--json":
             output_format = "json"
-        elif arg == "--results" and i+1 < len(sys.argv):
+        elif arg == "--research":
+            mode = "research"
+        elif arg == "--results" and i + 1 < len(sys.argv):
             try:
-                num_results = int(sys.argv[i+1])
+                num_results = int(sys.argv[i + 1])
             except ValueError:
                 pass
-    
-    # Execute search
-    if output_format == "json":
-        result = search_stock_json(query, num_results)
-        print(result)
+
+    if mode == "research":
+        print(research(query))
+    elif output_format == "json":
+        print(search_stock_json(query, num_results))
     else:
-        result = search_stock(query, num_results)
-        print(result)
+        print(search_stock(query, num_results))
 
 
-# Export functions for Claude to call
-__all__ = [
-    'search_stock',
-    'search_stock_json',
-]
+__all__ = ['search_stock', 'search_stock_json', 'research']
 
 
 if __name__ == "__main__":

@@ -47,3 +47,10 @@ logs/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Claude Code memory
+.claude/
+
+# Temporary/test files
+_tem_skeleton.md
+test_pw.pdf

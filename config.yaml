@@ -1,0 +1,169 @@
+# ============================================================
+#  Crisis Investment Researcher - Configuration File
+#  (危机投资研究器 - 配置文件)
+#
+#  This is the ONLY file you need to edit to configure the system.
+#  这是你唯一需要编辑的配置文件。
+# ============================================================
+
+# ----------------------------------------------------------
+# API Keys (API 密钥)
+# ----------------------------------------------------------
+# Get your Exa API key from: https://dashboard.exa.ai/api-keys
+# 从 https://dashboard.exa.ai/api-keys 获取你的 Exa API 密钥
+api_keys:
+  exa: ""                    # Required / 必填: Exa 搜索 API 密钥
+  openai: ""                 # Optional / 选填: OpenAI API 密钥 (用于函数调用示例)
+  anthropic: ""              # Optional / 选填: Anthropic API 密钥 (用于工具使用示例)
+
+# ----------------------------------------------------------
+# Search Settings (搜索设置)
+# ----------------------------------------------------------
+search:
+  # Search type / 搜索类型:
+  #   "auto"           - Balanced speed and quality (recommended) / 均衡速度与质量 (推荐)
+  #   "fast"           - Fastest results / 最快速度
+  #   "deep"           - Thorough research / 深度研究
+  #   "deep-reasoning" - Most comprehensive / 最全面
+  type: "auto"
+
+  # Number of results per search / 每次搜索返回的结果数量
+  num_results: 10
+
+  # Max characters per result / 每条结果的最大字符数
+  max_characters: 4000
+
+  # Content mode / 内容模式:
+  #   "highlights" - Compact excerpts, saves tokens (recommended) / 摘要模式,节省token (推荐)
+  #   "text"       - Full article text / 全文模式
+  content_mode: "highlights"
+
+# ----------------------------------------------------------
+# Data Validation (数据验证 - 确保高可信度)
+# ----------------------------------------------------------
+validation:
+  # Require source citations for all financial data / 要求所有财务数据标注来源
+  require_source_citations: true
+
+  # Minimum number of sources for cross-validation / 交叉验证所需的最少来源数
+  min_cross_validation_sources: 2
+
+  # Automatically flag stale data / 自动标记过期数据
+  auto_flag_stale_data: true
+
+  # Block report export if hallucination risk is high / 高幻觉风险时禁止导出报告
+  block_export_on_high_risk: true
+
+  # Data freshness thresholds (in days) / 数据新鲜度阈值 (天)
+  freshness_thresholds:
+    stock_price: 1             # Stock/crypto prices / 股价/币价
+    financial_statements: 120  # Income, balance sheet / 财务报表
+    analyst_ratings: 30        # Analyst ratings / 分析师评级
+    insider_trading: 14        # Insider transactions / 内部交易
+    news_sentiment: 3          # News articles / 新闻资讯
+    market_data: 1             # Index, volume / 市场数据
+    industry_report: 180       # Industry research / 行业报告
+    company_filing: 90         # SEC/exchange filings / 公司公告
+    earnings_call: 120         # Earnings call transcripts / 电话会议
+    management_guidance: 120   # Forward guidance / 管理层指引
+    tvl_data: 1                # DeFi TVL / 链上锁仓
+    protocol_revenue: 7        # Protocol fees / 协议收入
+    token_unlock: 30           # Token vesting / 代币解锁
+    governance_proposal: 14    # DAO governance / 治理提案
+    github_activity: 7         # Dev activity / 开发活动
+    community_metrics: 7       # Community data / 社区数据
+    treasury_balance: 7        # DAO treasury / 国库余额
+    macro_economic: 30         # GDP, CPI, rates / 宏观经济
+    regulatory_filing: 90      # Regulatory docs / 监管文件
+    audit_report: 365          # Audit reports / 审计报告
+
+# ----------------------------------------------------------
+# Source Credibility Tiers (来源可信度分级)
+# ----------------------------------------------------------
+# You can add or remove domains to customize credibility ranking
+# 你可以添加或删除域名来自定义可信度排名
+source_tiers:
+  # Tier 1: Official/Regulatory (最可信 - 官方/监管)
+  tier1:
+    - "sec.gov"
+    - "hkex.com.hk"
+    - "csrc.gov.cn"
+    - "sse.com.cn"
+    - "szse.cn"
+    - "federalreserve.gov"
+    - "fred.stlouisfed.org"
+    - "treasury.gov"
+    - "bls.gov"
+    - "census.gov"
+    - "worldbank.org"
+    - "imf.org"
+    - "defillama.com"
+    - "etherscan.io"
+    - "dune.com"
+    - "bscscan.com"
+    - "solscan.io"
+
+  # Tier 2: Mainstream Financial (可信 - 主流财经)
+  tier2:
+    - "stockanalysis.com"
+    - "marketbeat.com"
+    - "finance.yahoo.com"
+    - "bloomberg.com"
+    - "reuters.com"
+    - "wsj.com"
+    - "cnbc.com"
+    - "ft.com"
+    - "seekingalpha.com"
+    - "fool.com"
+    - "barrons.com"
+    - "coingecko.com"
+    - "coinmarketcap.com"
+    - "tradingview.com"
+    - "morningstar.com"
+
+  # Tier 3: Analytical Reference (参考 - 分析参考)
+  tier3:
+    - "investopedia.com"
+    - "thestreet.com"
+    - "benzinga.com"
+    - "zacks.com"
+    - "tipranks.com"
+    - "simplywall.st"
+    - "macrotrends.net"
+    - "gurufocus.com"
+    - "finviz.com"
+    - "wallstreetzen.com"
+
+# ----------------------------------------------------------
+# Report Export (报告导出)
+# ----------------------------------------------------------
+export:
+  # Output directories (relative to project root) / 输出目录 (相对于项目根目录)
+  markdown_dir: "research Output/markdown"
+  pdf_dir: "research Output/pdf"
+
+  # File naming pattern / 文件命名格式
+  # Available placeholders: {date}, {ticker}, {framework}, {report_id}
+  # 可用占位符: {date}=日期, {ticker}=代码, {framework}=框架, {report_id}=报告ID
+  naming_pattern: "{date}_{ticker}_{framework}_{report_id}"
+
+  # PDF rendering engine priority / PDF渲染引擎优先级
+  # The system tries engines in order and uses the first available
+  # 系统按顺序尝试引擎，使用第一个可用的
+  pdf_engines:
+    - "chromium"     # Best quality, needs: pip install playwright && playwright install chromium
+    - "fitz"         # Good quality, needs: pip install pymupdf
+    - "text"         # Plain text fallback, always available / 纯文本备选,始终可用
+
+# ----------------------------------------------------------
+# Network (网络设置)
+# ----------------------------------------------------------
+network:
+  # Request timeout in seconds / 请求超时时间 (秒)
+  timeout: 30
+
+  # Retry failed requests / 失败后重试次数
+  max_retries: 3
+
+  # Wait between retries in seconds / 重试间隔 (秒)
+  retry_delay: 1.0
